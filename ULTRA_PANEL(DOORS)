@@ -1,0 +1,448 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "TROLL",
+   LoadingTitle = "Troll players",
+   LoadingSubtitle = "by Robanik",
+   ConfigurationSaving = {
+      Enabled = false,
+      FolderName = nil, -- Create a custom folder for your hub/game
+      FileName = "TROLLING"
+   },
+   Discord = {
+      Enabled = false,
+      Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ABCD would be ABCD
+      RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+   },
+   KeySystem = true, -- Set this to true to use our key system
+   KeySettings = {
+      Title = "Key = RR",
+      Subtitle = "ROBANIK",
+      Note = "↓KEY↓",
+      FileName = "RR=ROBANIK", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
+      SaveKey = false, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+      GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+      Key = {"RR"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+   }
+})
+
+local MainTab = Window:CreateTab("🏠 Home", nil) -- Title, Image
+local MainSection = MainTab:CreateSection("Main")
+
+Rayfield:Notify({
+   Title = "You executed the script",
+   Content = "Very cool gui",
+   Duration = 5,
+   Image = 13047715178,
+   Actions = { -- Notification Buttons
+      Ignore = {
+         Name = "Okay!",
+         Callback = function()
+         print("The user tapped Okay!")
+      end
+   },
+},
+})
+
+local Button = MainTab:CreateButton({
+   Name = "Infinite Jump Toggle",
+   Callback = function()
+       --Toggles the infinite jump between on or off on every script run
+_G.infinjump = not _G.infinjump
+
+if _G.infinJumpStarted == nil then
+	--Ensures this only runs once to save resources
+	_G.infinJumpStarted = true
+	
+	--Notifies readiness
+	game.StarterGui:SetCore("SendNotification", {Title="Youtube Hub"; Text="Infinite Jump Activated!"; Duration=5;})
+
+	--The actual infinite jump
+	local plr = game:GetService('Players').LocalPlayer
+	local m = plr:GetMouse()
+	m.KeyDown:connect(function(k)
+		if _G.infinjump then
+			if k:byte() == 32 then
+			humanoid = game:GetService'Players'.LocalPlayer.Character:FindFirstChildOfClass('Humanoid')
+			humanoid:ChangeState('Jumping')
+			wait()
+			humanoid:ChangeState('Seated')
+			end
+		end
+	end)
+end
+   end,
+})
+
+local Slider = MainTab:CreateSlider({
+   Name = "WalkSpeed Slider",
+   Range = {1, 350},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = 16,
+   Flag = "sliderws", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Value)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = (Value)
+   end,
+})
+
+local Slider = MainTab:CreateSlider({
+   Name = "JumpPower Slider",
+   Range = {1, 350},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = 16,
+   Flag = "sliderjp", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Value)
+        game.Players.LocalPlayer.Character.Humanoid.JumpPower = (Value)
+   end,
+})
+
+local OtherSection = MainTab:CreateSection("Other")
+
+local TPTab = Window:CreateTab("Player, esp", nil) -- Title, Image
+
+local Button1 = TPTab:CreateButton({
+   Name = "Esp Players",
+   Callback = function()
+        while wait(0.5) do
+    for i, childrik in ipairs(workspace:GetDescendants()) do
+        if childrik:FindFirstChild("Humanoid") then
+            if not childrik:FindFirstChild("EspBox") then
+                if childrik ~= game.Players.LocalPlayer.Character then
+                    local esp = Instance.new("BoxHandleAdornment",childrik)
+                    esp.Adornee = childrik
+                    esp.ZIndex = 0
+                    esp.Size = Vector3.new(4, 5, 1)
+                    esp.Transparency = 0.65
+                    esp.Color3 = Color3.fromRGB(255,48,48)
+                    esp.AlwaysOnTop = true
+                    esp.Name = "EspBox"
+                end
+            end
+        end
+    end
+end
+   end,
+})
+
+local Button2 = TPTab:CreateButton({
+   Name = "infinite jump",
+   Callback = function()
+        -- LocalScript в StarterPlayerScripts
+
+local Players = game:GetService("Players")
+local ContextActionService = game:GetService("ContextActionService")
+local player = Players.LocalPlayer
+
+local function onCharacterAdded(character)
+	local humanoid = character:WaitForChild("Humanoid")
+
+	local function onJumpAction(actionName, inputState, inputObject)
+		if inputState == Enum.UserInputState.Begin then
+			-- Прыгаем даже в воздухе
+			humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+		end
+	end
+
+	-- Привязываем кнопку
+	ContextActionService:BindAction("AirJump", onJumpAction, true)
+
+	-- Настройка мобильной кнопки
+	ContextActionService:SetTitle("AirJump", "∆")
+	ContextActionService:SetPosition("AirJump", UDim2.new(0.85, 0, 0.75, 0)) -- справа от прыжка
+end
+
+-- При появлении персонажа
+if player.Character then
+	onCharacterAdded(player.Character)
+end
+player.CharacterAdded:Connect(onCharacterAdded)
+   end,
+})
+
+local Button3 = TPTab:CreateButton({
+   Name = "infinite hp",
+   Callback = function()
+        local Players = game:GetService("Players")
+
+Players.PlayerAdded:Connect(function(player)
+	player.CharacterAdded:Connect(function(character)
+		local humanoid = character:WaitForChild("Humanoid")
+
+		humanoid.MaxHealth = math.huge
+		humanoid.Health = humanoid.MaxHealth
+
+		-- Следим за убыванием здоровья
+		humanoid.HealthChanged:Connect(function()
+			if humanoid.Health < humanoid.MaxHealth then
+				humanoid.Health = humanoid.MaxHealth
+			end
+		end)
+	end)
+end)
+   end,
+})
+
+local TPTab = Window:CreateTab("", nil) -- Title, Image
+
+local Button3 = TPTab:CreateButton({
+   Name = "doors",
+   Callback = function()
+        -- Создаем экран GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Создаем кнопку для открытия/закрытия меню
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0, 150, 0, 50)
+ToggleButton.Position = UDim2.new(0, 10, 0, 10)
+ToggleButton.Text = "Toggle Menu"
+ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Черный цвет кнопки
+ToggleButton.TextColor3 = Color3.fromRGB(255, 0, 0) -- Красный текст
+ToggleButton.TextSize = 18
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.Parent = ScreenGui
+
+-- Создаем меню
+local MenuFrame = Instance.new("Frame")
+MenuFrame.Size = UDim2.new(0, 180, 0, 300)
+MenuFrame.Position = UDim2.new(0, 10, 0, 70)
+MenuFrame.Visible = false
+MenuFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40) -- Темный фон
+MenuFrame.BorderSizePixel = 5
+MenuFrame.BorderColor3 = Color3.fromRGB(255, 0, 0) -- Красная рамка
+MenuFrame.Parent = ScreenGui
+
+-- Добавляем тень для меню
+local shadow = Instance.new("ImageLabel")
+shadow.Size = UDim2.new(1, 0, 1, 0)
+shadow.Position = UDim2.new(0, 5, 0, 5)
+shadow.BackgroundTransparency = 1
+shadow.Image = "rbxassetid://4635137839"  -- Стиль тени
+shadow.Parent = MenuFrame
+
+-- Создаем текст с авторством
+local AuthorLabel = Instance.new("TextLabel")
+AuthorLabel.Size = UDim2.new(1, 0, 0, 20)
+AuthorLabel.Position = UDim2.new(0, 0, 1, -25)
+AuthorLabel.Text = "By Robanik"
+AuthorLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+AuthorLabel.TextSize = 14
+AuthorLabel.TextStrokeTransparency = 0.8
+AuthorLabel.BackgroundTransparency = 1
+AuthorLabel.Font = Enum.Font.Gotham
+AuthorLabel.Parent = MenuFrame
+
+-- Кнопки для ESP
+local ESPButtons = {}
+
+local function createESPButton(text, position, callback)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 140, 0, 30)
+    button.Position = position
+    button.Text = text
+    button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    button.TextColor3 = Color3.fromRGB(255, 0, 0)
+    button.TextSize = 16
+    button.Font = Enum.Font.Gotham
+    button.BorderSizePixel = 1
+    button.BorderColor3 = Color3.fromRGB(255, 0, 0)
+    button.Parent = MenuFrame
+    button.MouseButton1Click:Connect(callback)
+    table.insert(ESPButtons, button)
+end
+
+-- Функции ESP
+local espThreads = {}
+
+local function stopESPThreads()
+    for _, thread in ipairs(espThreads) do
+        if thread then
+            thread:Disconnect()
+        end
+    end
+    espThreads = {}
+end
+
+local function toggleESPDoors()
+    stopESPThreads()
+    local thread = game:GetService("RunService").Heartbeat:Connect(function()
+        for i = 0, 100 do
+            local doorPath = game:GetService("Workspace"):FindFirstChild("CurrentRooms")
+            if doorPath and doorPath:FindFirstChild(tostring(i)) and doorPath[tostring(i)]:FindFirstChild("Door") then
+                local door = doorPath[tostring(i)].Door
+                if not door:FindFirstChild("ESPLabel") then
+                    local billboardGui = Instance.new("BillboardGui")
+                    billboardGui.Name = "ESPLabel"
+                    billboardGui.Parent = door
+                    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+                    billboardGui.AlwaysOnTop = true
+
+                    local label = Instance.new("TextLabel")
+                    label.Parent = billboardGui
+                    label.Size = UDim2.new(1, 0, 1, 0)
+                    label.Text = "Door / " .. i
+                    label.BackgroundTransparency = 1
+                    label.TextColor3 = Color3.fromRGB(255, 0, 0)
+                    label.TextSize = 14
+                    label.TextStrokeTransparency = 0.8
+                    label.Font = Enum.Font.Gotham
+                end
+            end
+        end
+    end)
+    table.insert(espThreads, thread)
+end
+
+local function toggleESPKeys()
+    stopESPThreads()
+    local thread = game:GetService("RunService").Heartbeat:Connect(function()
+        for i = 0, 100 do
+            local keyPath = game:GetService("Workspace"):FindFirstChild("CurrentRooms")
+            if keyPath and keyPath:FindFirstChild(tostring(i)) then
+                local keyHitbox = keyPath[tostring(i)]:FindFirstChild("Assets") and keyPath[tostring(i)].Assets:FindFirstChild("KeyObtain") and keyPath[tostring(i)].Assets.KeyObtain:FindFirstChild("Hitbox") and keyPath[tostring(i)].Assets.KeyObtain.Hitbox:FindFirstChild("KeyHitbox")
+                if keyHitbox and not keyHitbox:FindFirstChild("ESPLabel") then
+                    local billboardGui = Instance.new("BillboardGui")
+                    billboardGui.Name = "ESPLabel"
+                    billboardGui.Parent = keyHitbox
+                    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+                    billboardGui.AlwaysOnTop = true
+
+                    local label = Instance.new("TextLabel")
+                    label.Parent = billboardGui
+                    label.Size = UDim2.new(1, 0, 1, 0)
+                    label.Text = "Key / " .. i
+                    label.BackgroundTransparency = 1
+                    label.TextColor3 = Color3.fromRGB(255, 0, 0)
+                    label.TextSize = 14
+                    label.TextStrokeTransparency = 0.8
+                    label.Font = Enum.Font.Gotham
+                end
+            end
+        end
+    end)
+    table.insert(espThreads, thread)
+end
+
+local function toggleESPLever()
+    stopESPThreads()
+    local thread = game:GetService("RunService").Heartbeat:Connect(function()
+        for i = 0, 100 do
+            local leverPath = game:GetService("Workspace"):FindFirstChild("CurrentRooms")
+            if leverPath and leverPath:FindFirstChild(tostring(i)) and leverPath[tostring(i)]:FindFirstChild("Assets") and leverPath[tostring(i)].Assets:FindFirstChild("LeverForGate") then
+                local lever = leverPath[tostring(i)].Assets.LeverForGate.Main
+                if not lever:FindFirstChild("ESPLabel") then
+                    local billboardGui = Instance.new("BillboardGui")
+                    billboardGui.Name = "ESPLabel"
+                    billboardGui.Parent = lever
+                    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+                    billboardGui.AlwaysOnTop = true
+
+                    local label = Instance.new("TextLabel")
+                    label.Parent = billboardGui
+                    label.Size = UDim2.new(1, 0, 1, 0)
+                    label.Text = "Lever / " .. i
+                    label.BackgroundTransparency = 1
+                    label.TextColor3 = Color3.fromRGB(255, 0, 0)
+                    label.TextSize = 14
+                    label.TextStrokeTransparency = 0.8
+                    label.Font = Enum.Font.Gotham
+                end
+            end
+        end
+    end)
+    table.insert(espThreads, thread)
+end
+
+local function toggleESPPlayers()
+    stopESPThreads()
+    local thread = game:GetService("RunService").Heartbeat:Connect(function()
+        for _, player in ipairs(game.Players:GetPlayers()) do
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local humanoidRootPart = player.Character.HumanoidRootPart
+                if not humanoidRootPart:FindFirstChild("ESPLabel") then
+                    local billboardGui = Instance.new("BillboardGui")
+                    billboardGui.Name = "ESPLabel"
+                    billboardGui.Parent = humanoidRootPart
+                    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+                    billboardGui.AlwaysOnTop = true
+
+                    local label = Instance.new("TextLabel")
+                    label.Parent = billboardGui
+                    label.Size = UDim2.new(1, 0, 1, 0)
+                    label.Text = player.Name
+                    label.BackgroundTransparency = 1
+                    label.TextColor3 = Color3.fromRGB(0, 255, 0)
+                    label.TextSize = 14
+                    label.TextStrokeTransparency = 0.8
+                    label.Font = Enum.Font.Gotham
+                end
+            end
+        end
+    end)
+    table.insert(espThreads, thread)
+end
+
+-- Создаем кнопки для включения ESP
+createESPButton("Toggle ESP Doors", UDim2.new(0, 10, 0, 60), toggleESPDoors)
+createESPButton("Toggle ESP Keys", UDim2.new(0, 10, 0, 100), toggleESPKeys)
+createESPButton("Toggle ESP Lever", UDim2.new(0, 10, 0, 140), toggleESPLever)
+createESPButton("Toggle ESP Players", UDim2.new(0, 10, 0, 180), toggleESPPlayers)
+
+-- Функция для переключения видимости меню
+ToggleButton.MouseButton1Click:Connect(function()
+    MenuFrame.Visible = not MenuFrame.Visible
+end)
+
+-- Функция для закрытия меню при клике вне его
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if not MenuFrame.Visible then return end
+        if not MenuFrame:IsPointInRegion2D(input.Position) and not ToggleButton:IsPointInRegion2D(input.Position) then
+            MenuFrame.Visible = false
+        end
+    end
+end)
+   end,
+})
+
+local Button1 = TPTab:CreateButton({
+   Name = "Ultra jump",
+   Callback = function()
+        local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+
+local rayDistance = 5 -- расстояние вниз, на котором проверяется земля
+local checkInterval = 0.1 -- интервал проверки в секундах
+
+-- Функция проверки земли под персонажем
+local function checkForFall()
+	while true do
+		wait(checkInterval)
+		if not character or not rootPart then continue end
+
+		local rayOrigin = rootPart.Position
+		local rayDirection = Vector3.new(0, -rayDistance, 0)
+
+		local raycastParams = RaycastParams.new()
+		raycastParams.FilterDescendantsInstances = {character}
+		raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+
+		local raycastResult = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
+
+		if not raycastResult then
+			-- Нет земли под персонажем — прыгнуть
+			if humanoid:GetState() ~= Enum.HumanoidStateType.Jumping then
+				humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+			end
+		end
+	end
+end
+
+-- Запуск проверки
+checkForFall()
+   end,
+})
