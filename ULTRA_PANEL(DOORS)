@@ -446,3 +446,12 @@ end
 checkForFall()
    end,
 })
+
+local TPTab = Window:CreateTab("Tp", nil) -- Title, Image
+
+local Button1 = TPTab:CreateButton({
+   Name = "Tp Trophe",
+   Callback = function()
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").Trophy.TrophyModel.Trophy.CFrame
+        end,
+        })
