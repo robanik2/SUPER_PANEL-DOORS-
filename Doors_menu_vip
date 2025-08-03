@@ -1,0 +1,343 @@
+-- Создание GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CustomMenu"
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+screenGui.ResetOnSpawn = false
+
+-- Главное меню (скрыто изначально)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 400, 0, 400)
+mainFrame.Position = UDim2.new(0.5, -200, 0.5, -200)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+mainFrame.BackgroundTransparency = 0.1
+mainFrame.BorderSizePixel = 0
+mainFrame.Visible = false
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner", mainFrame)
+corner.CornerRadius = UDim.new(0, 20)
+
+-- Кнопка открытия/закрытия меню
+local toggleButton = Instance.new("ImageButton")
+toggleButton.Size = UDim2.new(0, 50, 0, 50)
+toggleButton.Position = UDim2.new(0, 10, 0, 10)
+toggleButton.BackgroundTransparency = 1
+toggleButton.Image = "rbxassetid://82796613531069"
+toggleButton.Parent = screenGui
+
+toggleButton.MouseButton1Click:Connect(function()
+	mainFrame.Visible = not mainFrame.Visible
+end)
+
+-- Лэйаут для кнопок
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0, 10)
+layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+layout.VerticalAlignment = Enum.VerticalAlignment.Top
+layout.Parent = mainFrame
+
+-- Контейнер для кнопок и слайдера
+local content = Instance.new("Frame")
+content.Size = UDim2.new(1, 0, 1, -60)
+content.Position = UDim2.new(0, 0, 0, 50)
+content.BackgroundTransparency = 1
+content.Parent = mainFrame
+
+local contentLayout = Instance.new("UIListLayout")
+contentLayout.Padding = UDim.new(0, 10)
+contentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+contentLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+contentLayout.Parent = content
+
+-- 🟦 Функция создания кнопок
+local function createButton(text, onClickFunction)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 300, 0, 40)
+    button.Text = text
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Font = Enum.Font.GothamBold
+    button.TextSize = 18
+    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    button.AutoButtonColor = true
+    button.Parent = content
+
+    local buttonCorner = Instance.new("UICorner", button)
+    buttonCorner.CornerRadius = UDim.new(0, 10)
+
+    button.MouseButton1Click:Connect(onClickFunction)
+end
+
+-- 🟨 Отдельные кнопки с разными функциями
+
+-- 🔴 ESP Players
+createButton("ESP players", function()
+    local ESP_COLOR = Color3.fromRGB(255, 0, 0)
+
+    local function addESP(player)
+        if player == game.Players.LocalPlayer then return end
+
+        local function applyToCharacter(char)
+            if char:FindFirstChild("PlayerESP") then
+                char:FindFirstChild("PlayerESP"):Destroy()
+            end
+
+            local highlight = Instance.new("Highlight")
+            highlight.Name = "PlayerESP"
+            highlight.FillColor = ESP_COLOR
+            highlight.OutlineColor = Color3.new(1, 1, 1)
+            highlight.FillTransparency = 0.5
+            highlight.OutlineTransparency = 0
+            highlight.Adornee = char
+            highlight.Parent = char
+
+            local head = char:FindFirstChild("Head")
+            if head and not head:FindFirstChild("ESPName") then
+                local billboard = Instance.new("BillboardGui")
+                billboard.Name = "ESPName"
+                billboard.Size = UDim2.new(0, 200, 0, 50)
+                billboard.AlwaysOnTop = true
+                billboard.Adornee = head
+                billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+                billboard.Parent = head
+
+                local text = Instance.new("TextLabel")
+                text.Size = UDim2.new(1, 0, 1, 0)
+                text.BackgroundTransparency = 1
+                text.Text = player.Name
+                text.TextColor3 = ESP_COLOR
+                text.TextScaled = true
+                text.Font = Enum.Font.SourceSansBold
+                text.Parent = billboard
+            end
+        end
+
+        if player.Character then
+            applyToCharacter(player.Character)
+        end
+
+        player.CharacterAdded:Connect(function(char)
+            task.wait(1)
+            applyToCharacter(char)
+        end)
+    end
+
+    for _, player in pairs(game.Players:GetPlayers()) do
+        addESP(player)
+    end
+
+    game.Players.PlayerAdded:Connect(function(player)
+        addESP(player)
+    end)
+end)
+
+-- 🟩 ESP Doors
+createButton("esp doors", function()
+    local workspace = game:GetService("Workspace")
+    local rooms = workspace:WaitForChild("CurrentRooms")
+    local ESP_DOOR_COLOR = Color3.fromRGB(0, 255, 0)
+
+    local function addESP(doorPart)
+        if doorPart and doorPart:IsA("BasePart") and not doorPart:FindFirstChild("ESP_Highlight") then
+            local highlight = Instance.new("Highlight")
+            highlight.Name = "ESP_Highlight"
+            highlight.FillColor = ESP_DOOR_COLOR
+            highlight.OutlineColor = Color3.new(1, 1, 1)
+            highlight.FillTransparency = 0.5
+            highlight.OutlineTransparency = 0
+            highlight.Adornee = doorPart
+            highlight.Parent = doorPart
+        end
+    end
+
+    local function handleRoom(room)
+        local doorModel = room:FindFirstChild("Door")
+        if doorModel then
+            local doorPart = doorModel:FindFirstChild("Door")
+            addESP(doorPart)
+        end
+
+        room.ChildAdded:Connect(function(child)
+            if child.Name == "Door" then
+                task.wait(0.1)
+                local doorPart = child:FindFirstChild("Door")
+                addESP(doorPart)
+            end
+        end)
+    end
+
+    rooms.ChildAdded:Connect(function(room)
+        handleRoom(room)
+    end)
+
+    for i = 0, 100 do
+        local room = rooms:FindFirstChild(tostring(i))
+        if room then
+            handleRoom(room)
+        end
+    end
+end)
+
+-- 🔷 Discord
+createButton("ссылка дс", function()
+    setclipboard("https://discord.gg/my5vyfdy")
+end)
+
+-- 🔷 YouTube
+createButton("ссылка ютуб", function()
+    setclipboard("https://youtube.com/@megarobanik?si=ezZHNZkzDyqjqgiB")
+end)
+
+-- 🟨 ESP Keys (заглушка)
+createButton("ссылка ютуб тестера", function()
+    print("https://youtube.com/@sombrita_games?si=bz5p6D0mzdc0MU0p.")
+end)
+
+-- 🔷 Discord
+createButton("auto doors", function()
+    local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+local rooms = workspace:WaitForChild("CurrentRooms")
+
+-- Получить дверь по номеру
+local function getDoor(index)
+	local room = rooms:FindFirstChild(tostring(index))
+	if room then
+		local doorModel = room:FindFirstChild("Door")
+		if doorModel then
+			local doorPart = doorModel:FindFirstChild("Door")
+			if doorPart and doorPart:IsA("BasePart") then
+				return doorPart
+			end
+		end
+	end
+	return nil
+end
+
+-- Основной цикл — просто двигайся к каждой двери по порядку
+task.spawn(function()
+	for i = 0, 100 do
+		local door = getDoor(i)
+		if door then
+			print("➡️ Идём к двери:", i)
+			humanoid:MoveTo(door.Position + Vector3.new(0, 0, -3))
+
+			-- Ждать до прибытия или 5 секунд
+			local done = false
+			local conn
+			conn = humanoid.MoveToFinished:Connect(function()
+				done = true
+				conn:Disconnect()
+			end)
+
+			local timeout = 5
+			while not done and timeout > 0 do
+				task.wait(0.1)
+				timeout -= 0.1
+			end
+		end
+	end
+end)
+end)
+
+
+-- 🔴 Сброс всего
+createButton("Сбросить всё", function()
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player.Character and player.Character:FindFirstChild("PlayerESP") then
+            player.Character:FindFirstChild("PlayerESP"):Destroy()
+        end
+        if player.Character and player.Character:FindFirstChild("Head") then
+            local head = player.Character:FindFirstChild("Head")
+            if head:FindFirstChild("ESPName") then
+                head:FindFirstChild("ESPName"):Destroy()
+            end
+        end
+    end
+
+    local workspace = game:GetService("Workspace")
+    local rooms = workspace:FindFirstChild("CurrentRooms")
+    if rooms then
+        for _, room in pairs(rooms:GetChildren()) do
+            local door = room:FindFirstChild("Door")
+            if door then
+                local doorPart = door:FindFirstChild("Door")
+                if doorPart and doorPart:FindFirstChild("ESP_Highlight") then
+                    doorPart:FindFirstChild("ESP_Highlight"):Destroy()
+                end
+            end
+        end
+    end
+end)
+
+-- 🟥 Слайдер
+local sliderFrame = Instance.new("Frame")
+sliderFrame.Size = UDim2.new(0, 300, 0, 40)
+sliderFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+sliderFrame.Parent = content
+
+local sliderCorner = Instance.new("UICorner", sliderFrame)
+sliderCorner.CornerRadius = UDim.new(0, 10)
+
+-- Текст "By Robanik" (на фоне, уменьшенный и справа)
+local backgroundLabel = Instance.new("TextLabel")
+backgroundLabel.Size = UDim2.new(1, 0, 1, 0)
+backgroundLabel.Position = UDim2.new(0, 0, 0, 0)
+backgroundLabel.BackgroundTransparency = 1
+backgroundLabel.Text = "By Robanik"
+backgroundLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
+backgroundLabel.TextSize = 28 -- 📏 уменьшенный размер текста
+backgroundLabel.Font = Enum.Font.Gotham
+backgroundLabel.TextXAlignment = Enum.TextXAlignment.Right -- 📍 выравнивание по правому краю
+backgroundLabel.TextYAlignment = Enum.TextYAlignment.Center
+backgroundLabel.ZIndex = 1
+backgroundLabel.Parent = sliderFrame
+
+-- Зелёный бар
+local sliderBar = Instance.new("Frame")
+sliderBar.Name = "Bar"
+sliderBar.Size = UDim2.new(0.5, 0, 1, 0)
+sliderBar.BackgroundColor3 = Color3.fromRGB(80, 200, 120)
+sliderBar.BorderSizePixel = 0
+sliderBar.ZIndex = 2
+sliderBar.ClipsDescendants = true
+sliderBar.Parent = sliderFrame
+
+local barCorner = Instance.new("UICorner", sliderBar)
+barCorner.CornerRadius = UDim.new(0, 10)
+
+-- Текст "DOORS" (на зелёной части)
+local sliderLabel = Instance.new("TextLabel")
+sliderLabel.Size = UDim2.new(1, 0, 1, 0)
+sliderLabel.Position = UDim2.new(0, 0, 0, 0)
+sliderLabel.BackgroundTransparency = 1
+sliderLabel.Text = "DOORS"
+sliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+sliderLabel.TextScaled = true
+sliderLabel.Font = Enum.Font.GothamBold
+sliderLabel.ZIndex = 3
+sliderLabel.Parent = sliderBar
+
+-- Управление движением
+sliderFrame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		local uis = game:GetService("UserInputService")
+		local conn
+		conn = uis.InputChanged:Connect(function(moveInput)
+			if moveInput.UserInputType == Enum.UserInputType.MouseMovement then
+				local mousePos = uis:GetMouseLocation().X
+				local relX = math.clamp((mousePos - sliderFrame.AbsolutePosition.X) / sliderFrame.AbsoluteSize.X, 0, 1)
+				sliderBar.Size = UDim2.new(relX, 0, 1, 0)
+				print("Слайдер: ", math.floor(relX * 100)) -- значение от 0 до 100
+			end
+		end)
+
+		uis.InputEnded:Connect(function(endInput)
+			if endInput.UserInputType == Enum.UserInputType.MouseButton1 then
+				conn:Disconnect()
+			end
+		end)
+	end
+end)
